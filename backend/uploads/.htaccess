@@ -1,0 +1,45 @@
+# --- SECURITY & ACCESS CONFIGURATION FOR UPLOADS ---
+
+# Pastikan server mengenali file ini
+<IfModule mod_authz_core.c>
+    Require all granted
+</IfModule>
+
+# 1️⃣ Blokir file berbahaya (script & eksekusi)
+<FilesMatch "\.(php|php3|php4|php5|phtml|pl|cgi|asp|aspx|js|sh|exe|bat|cmd)$">
+    Require all denied
+</FilesMatch>
+
+# 2️⃣ Izinkan hanya file aman (gambar + dokumen umum)
+<FilesMatch "\.(jpg|jpeg|png|gif|pdf|doc|docx|xls|xlsx|ppt|pptx|txt)$">
+    Require all granted
+</FilesMatch>
+
+# 3️⃣ Set MIME types biar server tahu tipe file
+<IfModule mod_mime.c>
+    AddType image/jpeg .jpg .jpeg
+    AddType image/png .png
+    AddType image/gif .gif
+    AddType application/pdf .pdf
+    AddType application/msword .doc
+    AddType application/vnd.openxmlformats-officedocument.wordprocessingml.document .docx
+    AddType application/vnd.ms-excel .xls
+    AddType application/vnd.openxmlformats-officedocument.spreadsheetml.sheet .xlsx
+    AddType application/vnd.ms-powerpoint .ppt
+    AddType application/vnd.openxmlformats-officedocument.presentationml.presentation .pptx
+    AddType text/plain .txt
+</IfModule>
+
+# 4️⃣ Cegah listing isi folder
+Options -Indexes
+
+# 5️⃣ Aktifkan cache 1 bulan (untuk file statis)
+<IfModule mod_expires.c>
+    ExpiresActive On
+    ExpiresDefault "access plus 1 month"
+</IfModule>
+
+# 6️⃣ (Opsional tapi direkomendasikan) Cegah akses ke .htaccess itu sendiri
+<Files ".ht*">
+    Require all denied
+</Files>
