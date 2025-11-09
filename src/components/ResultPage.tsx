@@ -109,12 +109,10 @@ export const ResultPage = ({ document, onBack }: ResultPageProps) => {
       .filter((f): f is string => typeof f === 'string' && f.trim() !== '');
   }
 
-  // 🔧 Rapikan path dan hilangkan error “undefined”
+  // 🔧 Rapikan path dan hilangkan error "undefined"
   files = files
-    .filter((f) => f && !f.includes('undefined'))
-    .map((f) =>
-      f.replace(/^uploads\/uploads\//, 'uploads/').replace(/^\/?uploads\//, 'uploads/')
-    );
+    .filter((f) => f && f !== 'undefined' && !f.includes('undefined'))
+    .map((f) => f.replace(/^uploads\/uploads\//, '').replace(/^\/?uploads\//, '').replace(/^\/+/, ''));
 
   console.log('📂 Final Files:', files);
 
@@ -244,7 +242,7 @@ export const ResultPage = ({ document, onBack }: ResultPageProps) => {
             >
               {Array.isArray(files) && files.length > 0 ? (
                 files.map((file, index) => {
-                  const fileURL = `${uploadsBase}/${file.replace(/^\/+/, '')}`;
+                  const fileURL = `${uploadsBase}/uploads/${file}`;
                   const isPDF = file.toLowerCase().endsWith('.pdf');
                   console.log(
                     `📑 Slide ${index + 1}: ${isPDF ? 'PDF' : 'Gambar'} →`,
@@ -258,12 +256,17 @@ export const ResultPage = ({ document, onBack }: ResultPageProps) => {
                             src={fileURL}
                             className="w-full h-[80vh] rounded-xl"
                             title={`Preview PDF ${index + 1}`}
+                            onError={(e) => console.error('Error loading PDF:', fileURL)}
                           />
                         ) : (
                           <img
                             src={fileURL}
                             alt={`Dokumen ${index + 1}`}
                             className="w-full h-[80vh] object-contain"
+                            onError={(e) => {
+                              console.error('Error loading image:', fileURL);
+                              e.currentTarget.src = '/placeholder.png';
+                            }}
                           />
                         )}
                       </div>

@@ -29,12 +29,10 @@ export const DocumentViewer: React.FC<DocumentViewerProps> = ({
 
   if (!isOpen || files.length === 0) return null;
 
-  // ✅ FIX: Jangan tambahkan /uploads/ dua kali
   const handleDownload = (file: DocumentFile) => {
     const link = document.createElement('a');
-    const fileUrl = file.file_path
-      ? `${uploadsBase}/${file.file_path}`
-      : '/placeholder.png';
+    const cleanPath = file.file_path?.replace(/^\/?uploads\//, '').replace(/^\/+/, '') || '';
+    const fileUrl = cleanPath ? `${uploadsBase}/uploads/${cleanPath}` : '/placeholder.png';
     link.href = fileUrl;
     link.download = file.file_name;
     document.body.appendChild(link);
@@ -44,8 +42,8 @@ export const DocumentViewer: React.FC<DocumentViewerProps> = ({
 
   const renderFilePreview = (file: DocumentFile) => {
     const fileType = getFileType(file.file_name);
-    // ✅ FIX: Gunakan path langsung dari file_path
-    const fileUrl = `${uploadsBase}/${file.file_path.replace(/^\/?uploads\//, 'uploads/')}`;
+    const cleanPath = file.file_path?.replace(/^\/?uploads\//, '').replace(/^\/+/, '') || '';
+    const fileUrl = `${uploadsBase}/uploads/${cleanPath}`;
 
     switch (fileType) {
       case 'pdf':

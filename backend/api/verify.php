@@ -86,7 +86,18 @@ try {
             ];
         }
     }
-    
+
+    // Get document files
+    $file_stmt = $db->prepare("
+        SELECT id, document_id, file_name, file_path, file_type, uploaded_at
+        FROM document_files
+        WHERE document_id = :document_id
+        ORDER BY id ASC
+    ");
+    $file_stmt->bindParam(':document_id', $document['id'], PDO::PARAM_INT);
+    $file_stmt->execute();
+    $document['files'] = $file_stmt->fetchAll(PDO::FETCH_ASSOC);
+
     // Return successful response
     echo json_encode([
         'success' => true,
