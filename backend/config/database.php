@@ -1,9 +1,36 @@
 <?php
-// Database configuration (ISI sesuai hosting kamu)
-define('DB_HOST', 'localhost');                // contoh: 'localhost' atau '127.0.0.1'
-define('DB_NAME', 'n1582978_surat_db');        // nama database
-define('DB_USER', 'rootn1582978_admin');             // JANGAN pakai root di produksi
-define('DB_PASS', 'Rumahtua123!'); // password kuat
+// Load environment variables
+function loadEnv($path) {
+    if (!file_exists($path)) {
+        return;
+    }
+    
+    $lines = file($path, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+    foreach ($lines as $line) {
+        if (strpos(trim($line), '#') === 0) {
+            continue;
+        }
+        
+        list($name, $value) = explode('=', $line, 2);
+        $name = trim($name);
+        $value = trim($value);
+        
+        if (!array_key_exists($name, $_SERVER) && !array_key_exists($name, $_ENV)) {
+            putenv(sprintf('%s=%s', $name, $value));
+            $_ENV[$name] = $value;
+            $_SERVER[$name] = $value;
+        }
+    }
+}
+
+// Load .env file
+loadEnv(__DIR__ . '/../../.env');
+
+// Database configuration dengan fallback ke hardcoded values
+define('DB_HOST', $_ENV['DB_HOST'] ?? 'localhost');
+define('DB_NAME', $_ENV['DB_NAME'] ?? 'document_verification');
+define('DB_USER', $_ENV['DB_USER'] ?? 'root');
+define('DB_PASS', $_ENV['DB_PASS'] ?? '');
 
 class Database {
     private $host = DB_HOST;
@@ -20,20 +47,26 @@ class Database {
                 PDO::ATTR_ERRMODE            => PDO::ERRMODE_EXCEPTION,
                 PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
                 PDO::ATTR_EMULATE_PREPARES   => false,
-                // PDO::ATTR_PERSISTENT      => true, // opsional: koneksi persistent
             ];
             $pdo = new PDO($dsn, $this->username, $this->password, $options);
 
-            // Opsional: set timezone & mode SQL biar konsisten
+            // Set timezone
             $pdo->exec("SET time_zone = '+07:00'");
-            // $pdo->exec("SET sql_mode = 'STRICT_TRANS_TABLES,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION'");
 
             $this->conn = $pdo;
         } catch (PDOException $e) {
-            // Jangan echo error ke output; simpan di log
             error_log("DB connection error: " . $e->getMessage());
             return null;
         }
         return $this->conn;
     }
+}
+
+// Global PDO instance untuk backward compatibility
+try {
+    $database = new Database();
+    $pdo = $database->getConnection();
+} catch (Exception $e) {
+    error_log("Failed to create global PDO instance: " . $e->getMessage());
+    $pdo = null;
 }

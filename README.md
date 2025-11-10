@@ -2,6 +2,37 @@
 
 A modern, responsive document verification system built with React frontend and PHP backend for Pondok Pesantren Lirboyo Kediri.
 
+## 🚀 Quick Start
+
+### 1. Environment Setup
+```bash
+# Copy environment file
+cp .env.example .env
+
+# Edit .env file dengan database credentials Anda
+nano .env
+```
+
+### 2. Database Setup
+```bash
+# Jalankan setup database (buka di browser)
+http://localhost/backend/setup.php
+
+# Atau manual via MySQL
+mysql -u root -p < backend/database/schema.sql
+mysql -u root -p < backend/database/seed.sql
+```
+
+### 3. Frontend Setup
+```bash
+npm install
+npm run dev
+```
+
+### 4. Default Login
+- Username: `admin`
+- Password: `admin123`
+
 ## 🚀 Features
 
 ### User Features
@@ -58,7 +89,19 @@ git clone <repository-url>
 cd document-verification-system
 ```
 
-### 2. Frontend Setup
+### 2. Environment Configuration
+```bash
+# Copy environment template
+cp .env.example .env
+
+# Edit database configuration
+DB_HOST=localhost
+DB_NAME=document_verification
+DB_USER=your_username
+DB_PASS=your_password
+```
+
+### 3. Frontend Setup
 ```bash
 # Install dependencies
 npm install
@@ -70,16 +113,27 @@ npm run dev
 npm run build
 ```
 
-### 3. Backend Setup
+### 4. Backend Setup
 
-#### Database Configuration
-1. Create a MySQL database
-2. Import the database schema:
-```sql
--- Run the SQL commands in backend/database/schema.sql
+#### Automatic Setup (Recommended)
+```bash
+# Buka di browser untuk setup otomatis
+http://localhost/backend/setup.php
 ```
 
-3. Configure database connection in `backend/config/database.php`
+#### Database Configuration
+1. Manual database setup:
+```sql
+mysql -u root -p
+CREATE DATABASE document_verification;
+exit
+
+# Import schema dan seed data
+mysql -u root -p document_verification < backend/database/schema.sql
+mysql -u root -p document_verification < backend/database/seed.sql
+```
+
+2. Database akan otomatis menggunakan konfigurasi dari `.env` file
 
 #### File Permissions
 ```bash
@@ -93,24 +147,40 @@ chmod 644 backend/uploads/.htaccess
 - Ensure `uploads/` directory is writable
 - Configure virtual host to point to backend directory
 
-### 4. Configuration
+### 5. Testing
+```bash
+# Test API endpoints
+http://localhost/backend/test/test_api.php
 
-#### Frontend Configuration
-Update API endpoints in your frontend code:
-```javascript
-// Replace localhost with your domain
-const API_BASE_URL = 'https://yourdomain.com/api';
+# Test frontend
+http://localhost:5173
 ```
 
-#### Backend Configuration
-Update `backend/config/database.php`:
-```php
-<?php
-define('DB_HOST', 'your-database-host');
-define('DB_NAME', 'your-database-name');
-define('DB_USER', 'your-database-username');
-define('DB_PASS', 'your-database-password');
-?>
+## 🔧 Configuration
+### Environment Variables
+```bash
+# API Configuration
+VITE_API_BASE_URL=http://localhost/backend/api
+
+# Database Configuration
+DB_HOST=localhost
+DB_NAME=document_verification
+DB_USER=root
+DB_PASS=
+
+# Upload Configuration
+MAX_FILE_SIZE=10485760
+ALLOWED_EXTENSIONS=jpg,jpeg,png,pdf,doc,docx
+```
+
+### Production Configuration
+```bash
+# Update .env untuk production
+VITE_API_BASE_URL=https://yourdomain.com/backend/api
+DB_HOST=your-production-host
+DB_NAME=your-production-database
+DB_USER=your-production-user
+DB_PASS=your-secure-password
 ```
 
 ## 📊 Database Schema
@@ -124,17 +194,40 @@ define('DB_PASS', 'your-database-password');
 - `file_jpg` (VARCHAR(255))
 - `created_at` (TIMESTAMP)
 
+#### `document_files`
+- `id` (INT, PRIMARY KEY, AUTO_INCREMENT)
+- `document_id` (INT, FOREIGN KEY)
+- `file_name` (VARCHAR(255))
+- `file_path` (VARCHAR(255))
+- `file_type` (VARCHAR(100))
+- `uploaded_at` (TIMESTAMP)
+
 #### `signers`
 - `id` (INT, PRIMARY KEY, AUTO_INCREMENT)
 - `nama` (VARCHAR(100))
 - `jabatan` (VARCHAR(100))
+- `bio` (TEXT)
+- `photo` (VARCHAR(255))
+- `links_json` (JSON)
 
 #### `document_signers`
 - `id` (INT, PRIMARY KEY, AUTO_INCREMENT)
 - `document_id` (INT, FOREIGN KEY)
 - `signer_id` (INT, FOREIGN KEY)
+- `jabatan` (VARCHAR(100))
+
+#### `users`
+- `id` (INT, PRIMARY KEY, AUTO_INCREMENT)
+- `username` (VARCHAR(50), UNIQUE)
+- `password` (VARCHAR(255))
+- `email` (VARCHAR(100))
 
 ## 🔌 API Endpoints
+
+### Authentication
+```
+POST /api/login.php
+```
 
 ### Document Verification
 ```
@@ -144,11 +237,144 @@ GET /api/verify.php?nomor_dokumen={document_number}
 ### Get All Signers
 ```
 GET /api/signers.php
+GET /api/get_signer.php?id={signer_id}
+GET /api/get_signer.php?name={signer_name}
 ```
 
-### Create Document
+### Document Management
 ```
-POST /api/documents.php
+POST /api/create_document.php
+GET /api/get_documents.php
+POST /api/update_document.php
+DELETE /api/delete_document.php
+```
+
+### Signer Management
+```
+POST /api/create_signer.php
+POST /api/update_signer.php
+DELETE /api/delete_signer.php
+```
+
+### File Operations
+```
+GET /api/download.php?file={filename}
+```
+
+## 🧪 Mock Data
+
+System includes comprehensive mock data for development:
+
+```typescript
+// Initialize mock data
+import { initMockData } from './src/utils/mockData';
+initMockData();
+
+// Debug localStorage
+import { debugLocalStorage } from './src/utils/mockData';
+debugLocalStorage();
+```
+
+### Mock Data Features
+- 5 sample signers dengan bio lengkap
+- 5 sample documents dengan multiple files
+- LocalStorage integration untuk offline development
+- Automatic data merging dengan API data
+
+## 🔧 Development Tools
+
+### Database Setup Script
+```bash
+# Automatic database setup
+http://localhost/backend/setup.php
+```
+
+### API Testing
+```bash
+# Test all API endpoints
+http://localhost/backend/test/test_api.php
+```
+
+### Mock Data Management
+```javascript
+// Clear all mock data
+import { clearAllLocalStorageData } from './src/utils/mockData';
+clearAllLocalStorageData();
+
+// Check storage size
+import { getLocalStorageSize } from './src/utils/mockData';
+console.log('Storage size:', getLocalStorageSize());
+```
+
+## 🚀 Deployment
+
+### Environment Setup
+```bash
+# Production .env
+VITE_API_BASE_URL=https://yourdomain.com/backend/api
+DB_HOST=your-production-host
+DB_NAME=your-production-database
+DB_USER=your-production-user
+DB_PASS=your-secure-password
+```
+
+### Build & Deploy
+```bash
+# Build frontend
+npm run build
+
+# Upload dist/ ke web hosting
+# Upload backend/ ke web hosting
+# Jalankan setup.php di production
+```
+
+## 🐛 Troubleshooting
+
+### Database Connection Issues
+```bash
+# Check .env configuration
+cat .env
+
+# Test database connection
+php -r "
+require 'backend/config/database.php';
+\$db = new Database();
+\$conn = \$db->getConnection();
+echo \$conn ? 'Connected' : 'Failed';
+"
+```
+
+### API Issues
+```bash
+# Test API endpoints
+curl http://localhost/backend/api/signers.php
+
+# Check error logs
+tail -f backend/api/error_log
+```
+
+### Frontend Issues
+```bash
+# Check environment variables
+echo $VITE_API_BASE_URL
+
+# Clear localStorage
+localStorage.clear()
+```
+
+## 📝 Default Accounts
+
+### Admin Account
+- Username: `admin`
+- Password: `admin123`
+- Email: `admin@lirboyo.net`
+
+### Sekretaris Account  
+- Username: `sekretaris`
+- Password: `admin123`
+- Email: `sekretaris@lirboyo.net`
+
+**⚠️ Ganti password default setelah setup!**
 Content-Type: multipart/form-data
 
 Fields:
