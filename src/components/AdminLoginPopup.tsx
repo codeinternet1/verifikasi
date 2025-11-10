@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { X } from "lucide-react";
+import { API_ENDPOINTS } from "../config";
 
 interface AdminLoginPopupProps {
   onLoginSuccess: () => void;
@@ -18,10 +19,8 @@ export const AdminLoginPopup: React.FC<AdminLoginPopupProps> = ({
     e.preventDefault();
     setLoading(true);
 
-    const api_url = "https://verifikasi.surat.lirboyo.net/backend/api/login.php"; // Ganti URL ini sesuai dengan lokasi file PHP Anda
-
     try {
-      const response = await fetch(api_url, {
+      const response = await fetch(API_ENDPOINTS.login, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
